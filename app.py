@@ -830,586 +830,598 @@ def hospital_saku_decision(summary, depertment_assessement):
 def main():
     st.title("BhavanaAI")
     
-    # Add styled text box for "Keep Smiling"
-    st.markdown("""
-        <div style='padding: 10px; 
-                    background-color: #f0f2f6; 
-                    border-radius: 5px; 
-                    text-align: center; 
-                    margin: 10px 0;
-                    font-size: 20px;
-                    color: #1f77b4;'>
-            Keep Smiling 😊
-        </div>
-    """, unsafe_allow_html=True)
-    
-    st.text("正確な問診をするAIです。")
-
-    # File upload section with columns
-    col1, col2 = st.columns([3, 1])
-    
-    # Add file upload button
-    uploaded_file = st.file_uploader("テキストファイルをアップロード (オプション)", type=['txt'])
-    
-    # Handle uploaded file
-    if uploaded_file is not None:
-        try:
-            # Read the content of the uploaded file
-            content = uploaded_file.getvalue().decode('utf-8')
-            st.session_state["step"] = 1
-            st.session_state["messages"] = []
-            st.session_state["messages"].append({
-                "role": "user",
-                "content": content,
-            })
-            with st.chat_message("user"):
-                st.write(content)
-        except Exception as e:
-            st.error(f"ファイルの読み込みに失敗しました: {str(e)}")
-
-    # セッションで管理するステート
-    if "step" not in st.session_state:
+    # Add Start button at the top
+    if "started" not in st.session_state:
+        st.session_state["started"] = False
+        
+    if st.button("START", type="primary"):
+        st.session_state["started"] = True
         st.session_state["step"] = 0
-    if "messages" not in st.session_state:
         st.session_state["messages"] = []
-    if "selected_model" not in st.session_state:
-        st.session_state["selected_model"] = None
-    if "api_keys" not in st.session_state:
-        st.session_state["api_keys"] = {
-            "openai": "",
-            "deepseek": ""
-        }
+        st.rerun()
+        
+    # Only show the rest of the interface after clicking START
+    if st.session_state["started"]:
+        # Add styled text box for "Keep Smiling"
+        st.markdown("""
+            <div style='padding: 10px; 
+                        background-color: #f0f2f6; 
+                        border-radius: 5px; 
+                        text-align: center; 
+                        margin: 10px 0;
+                        font-size: 20px;
+                        color: #1f77b4;'>
+                Keep Smiling 😊
+            </div>
+        """, unsafe_allow_html=True)
+        
+        st.text("正確な問診をするAIです。")
 
-    # サイドバーにモデル設定を配置
-    with st.sidebar:
-        st.markdown("### フィードバック")
-        st.markdown("ご意見・ご要望があれば以下までお願いいたします。")
-        st.markdown("[アンケート](https://forms.gle/MuRWMHM23wPwPAQH8)")
-        st.markdown("[GitHub Issues](https://github.com/yusukewatanabe1208/test/issues)")
-        st.markdown("---")  # Add a separator line
+        # File upload section with columns
+        col1, col2 = st.columns([3, 1])
         
-        st.subheader("AIモデルの設定")
+        # Add file upload button
+        uploaded_file = st.file_uploader("テキストファイルをアップロード (オプション)", type=['txt'])
         
-        # モデル選択（ドロップダウンリスト）
-        model_choice = st.selectbox(
-            "利用するAIモデルを選択してください",
-            ["GPT-4", "DeepSeek"],
-            index=0
-        )
-        
-        # 選択されたモデルに応じたAPIキー入力
-        if model_choice == "GPT-4":
-            api_key = st.text_input(
-                "OpenAI APIキー",
-                type="password",
-                value=st.session_state["api_keys"]["openai"]
-            )
-        else:
-            api_key = st.text_input(
-                "DeepSeek APIキー",
-                type="password",
-                value=st.session_state["api_keys"]["deepseek"]
-            )
-        
-        if st.button("設定を保存して開始"):
-            if api_key:
-                # モデルとAPIキーを保存
-                st.session_state["selected_model"] = "gpt4" if model_choice == "GPT-4" else "deepseek"
-                
-                # APIキーを保存
-                if model_choice == "GPT-4":
-                    st.session_state["api_keys"]["openai"] = api_key
-                    openai.api_key = api_key
-                else:
-                    st.session_state["api_keys"]["deepseek"] = api_key
-                    global DEEPSEEK_API_KEY
-                    DEEPSEEK_API_KEY = api_key
-                    # セッションステートにも保存
-                    st.session_state["deepseek_api_key"] = api_key
-                
-                st.session_state.step = 1
-                st.rerun()
-            else:
-                st.error("APIキーを入力してください。")
+        # Handle uploaded file
+        if uploaded_file is not None:
+            try:
+                # Read the content of the uploaded file
+                content = uploaded_file.getvalue().decode('utf-8')
+                st.session_state["step"] = 1
+                st.session_state["messages"] = []
+                st.session_state["messages"].append({
+                    "role": "user",
+                    "content": content,
+                })
+                with st.chat_message("user"):
+                    st.write(content)
+            except Exception as e:
+                st.error(f"ファイルの読み込みに失敗しました: {str(e)}")
 
-        # サイドバーの一番下に終了ボタンを追加
-        st.markdown("---")  # Add a separator line
-        if st.button("終了", type="primary"):
-            st.session_state.step = 0
+        # セッションで管理するステート
+        if "step" not in st.session_state:
+            st.session_state["step"] = 0
+        if "messages" not in st.session_state:
             st.session_state["messages"] = []
+        if "selected_model" not in st.session_state:
             st.session_state["selected_model"] = None
+        if "api_keys" not in st.session_state:
             st.session_state["api_keys"] = {
                 "openai": "",
                 "deepseek": ""
             }
-            st.rerun()
 
-    # メインコンテンツ
-    if st.session_state.step == 0:
-        st.info("左側のサイドバーからAIモデルを選択し、APIキーを入力してください。")
-
-    # --- step=1 以降は既存のコード ---
-    elif st.session_state.step == 1:
-        # まだ最初のアシスタントメッセージがなければ登録
-        if "assistants_first_comment" not in st.session_state:
-            model_name = "GPT-4" if st.session_state["selected_model"] == "gpt4" else "DeepSeek"
-            st.session_state["assistants_first_comment"] = f"私は{model_name}を使用した正確な問診をするAIです。\n今日はどうされましたか？お困りのことを10-100文字程度で教えてください。"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": st.session_state["assistants_first_comment"],
-                "typed": False
-            })
-
-    # --- 過去ログをすべて表示 ---
-    # すでに typed=True のものは即時表示、typed=False のものはタイプライター表示
-    for idx, msg in enumerate(st.session_state["messages"]):
-        with st.chat_message(msg["role"]):
-            if msg["role"] == "assistant":
-                # 「typed」フラグを見てタイプライター表示するか即時表示するかを分岐
-                if not msg.get("typed", False):
-                    # まだタイプライターで表示されていない場合のみアニメーション
-                    typewrite(msg["content"], speed=0.05)
-                    # 表示後、フラグを True にする
-                    st.session_state["messages"][idx]["typed"] = True
+        # サイドバーにモデル設定を配置
+        with st.sidebar:
+            st.markdown("### フィードバック")
+            st.markdown("ご意見・ご要望があれば以下までお願いいたします。")
+            st.markdown("[アンケート](https://forms.gle/MuRWMHM23wPwPAQH8)")
+            st.markdown("[GitHub Issues](https://github.com/yusukewatanabe1208/test/issues)")
+            st.markdown("---")  # Add a separator line
+            
+            st.subheader("AIモデルの設定")
+            
+            # モデル選択（ドロップダウンリスト）
+            model_choice = st.selectbox(
+                "利用するAIモデルを選択してください",
+                ["GPT-4", "DeepSeek"],
+                index=0
+            )
+            
+            # 選択されたモデルに応じたAPIキー入力
+            if model_choice == "GPT-4":
+                api_key = st.text_input(
+                    "OpenAI APIキー",
+                    type="password",
+                    value=st.session_state["api_keys"]["openai"]
+                )
+            else:
+                api_key = st.text_input(
+                    "DeepSeek APIキー",
+                    type="password",
+                    value=st.session_state["api_keys"]["deepseek"]
+                )
+            
+            if st.button("設定を保存して開始"):
+                if api_key:
+                    # モデルとAPIキーを保存
+                    st.session_state["selected_model"] = "gpt4" if model_choice == "GPT-4" else "deepseek"
+                    
+                    # APIキーを保存
+                    if model_choice == "GPT-4":
+                        st.session_state["api_keys"]["openai"] = api_key
+                        openai.api_key = api_key
+                    else:
+                        st.session_state["api_keys"]["deepseek"] = api_key
+                        global DEEPSEEK_API_KEY
+                        DEEPSEEK_API_KEY = api_key
+                        # セッションステートにも保存
+                        st.session_state["deepseek_api_key"] = api_key
+                    
+                    st.session_state.step = 1
+                    st.rerun()
                 else:
-                    # すでにアニメーション済みなら、単に表示
+                    st.error("APIキーを入力してください。")
+
+            # サイドバーの一番下に終了ボタンを追加
+            st.markdown("---")  # Add a separator line
+            if st.button("終了", type="primary"):
+                st.session_state.step = 0
+                st.session_state["messages"] = []
+                st.session_state["selected_model"] = None
+                st.session_state["api_keys"] = {
+                    "openai": "",
+                    "deepseek": ""
+                }
+                st.rerun()
+
+        # メインコンテンツ
+        if st.session_state.step == 0:
+            st.info("左側のサイドバーからAIモデルを選択し、APIキーを入力してください。")
+
+        # --- step=1 以降は既存のコード ---
+        elif st.session_state.step == 1:
+            # まだ最初のアシスタントメッセージがなければ登録
+            if "assistants_first_comment" not in st.session_state:
+                model_name = "GPT-4" if st.session_state["selected_model"] == "gpt4" else "DeepSeek"
+                st.session_state["assistants_first_comment"] = f"私は{model_name}を使用した正確な問診をするAIです。\n今日はどうされましたか？お困りのことを10-100文字程度で教えてください。"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": st.session_state["assistants_first_comment"],
+                    "typed": False
+                })
+
+        # --- 過去ログをすべて表示 ---
+        # すでに typed=True のものは即時表示、typed=False のものはタイプライター表示
+        for idx, msg in enumerate(st.session_state["messages"]):
+            with st.chat_message(msg["role"]):
+                if msg["role"] == "assistant":
+                    # 「typed」フラグを見てタイプライター表示するか即時表示するかを分岐
+                    if not msg.get("typed", False):
+                        # まだタイプライターで表示されていない場合のみアニメーション
+                        typewrite(msg["content"], speed=0.05)
+                        # 表示後、フラグを True にする
+                        st.session_state["messages"][idx]["typed"] = True
+                    else:
+                        # すでにアニメーション済みなら、単に表示
+                        st.write(msg["content"])
+                else:
+                    # userメッセージは即時表示でもOK
                     st.write(msg["content"])
-            else:
-                # userメッセージは即時表示でもOK
-                st.write(msg["content"])
 
-    # --- ユーザーの新規入力欄 ---
-    user_input = st.chat_input("メッセージを入力してください...")
-    if user_input:
-        # ユーザーの発言を保存＆表示
-        st.session_state["messages"].append({
-            "role": "user",
-            "content": user_input,
-        })
-        with st.chat_message("user"):
-            st.write(user_input)
-
-        # --- 各 step に応じた分岐 ---
-        if st.session_state.step == 1:
-            # step1: ユーザーの症状自由記載
-            # ---------------------------------------------------
-            st.session_state["patients_first_comment"] = user_input
-
-            # 次のアシスタントメッセージを追加
-            assistant_text = (
-                "ありがとうございます。\n"
-                "次に、記載された症状について追加で質問をさせていただきます。\n"
-                "少しお待ちください。"
-            )
+        # --- ユーザーの新規入力欄 ---
+        user_input = st.chat_input("メッセージを入力してください...")
+        if user_input:
+            # ユーザーの発言を保存＆表示
             st.session_state["messages"].append({
-                "role": "assistant",
-                "content": assistant_text,
-                "typed": False
+                "role": "user",
+                "content": user_input,
             })
+            with st.chat_message("user"):
+                st.write(user_input)
 
-            # case_dict, symptom_dictionary を生成
-            result = make_question_and_dictionary(
-                patients_comment=user_input,
-                columns_dictionary=columns_dictionary_1
-            )
-            
-            if result is None:
-                st.error("症状の分析に失敗しました。APIキーを確認してください。")
-                return
+            # --- 各 step に応じた分岐 ---
+            if st.session_state.step == 1:
+                # step1: ユーザーの症状自由記載
+                # ---------------------------------------------------
+                st.session_state["patients_first_comment"] = user_input
+
+                # 次のアシスタントメッセージを追加
+                assistant_text = (
+                    "ありがとうございます。\n"
+                    "次に、記載された症状について追加で質問をさせていただきます。\n"
+                    "少しお待ちください。"
+                )
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": assistant_text,
+                    "typed": False
+                })
+
+                # case_dict, symptom_dictionary を生成
+                result = make_question_and_dictionary(
+                    patients_comment=user_input,
+                    columns_dictionary=columns_dictionary_1
+                )
                 
-            case_dict, symptom_dictionary = result
-            st.session_state["case_dict"] = case_dict
-            st.session_state["symptom_dictionary"] = symptom_dictionary
+                if result is None:
+                    st.error("症状の分析に失敗しました。APIキーを確認してください。")
+                    return
+                    
+                case_dict, symptom_dictionary = result
+                st.session_state["case_dict"] = case_dict
+                st.session_state["symptom_dictionary"] = symptom_dictionary
 
-            # 問診票を作成
-            if case_dict:
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": f"あなたの発言をもとに問診票を作成しました。\n{json.dumps(case_dict, ensure_ascii=False, indent=2)}"
-                })
-            else:
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": "症状の分析が完了しました。次の質問に進みましょう。"
-                })
-
-            # 次へ
-            st.session_state.step = 2
-            st.rerun()
-        elif st.session_state.step == 2:
-            case_dict = st.session_state.get("case_dict")
-            if case_dict is None:
-                st.error("問診データの取得に失敗しました。最初からやり直してください。")
-                st.session_state.step = 0
-                st.rerun()
-                return
-            
-            # まだ表示中の質問がなければ、次の質問を取り出して表示する
-            if "current_question" not in st.session_state or st.session_state["current_question"] is None:
-                unanswered = [q for q, a in case_dict.items() if a == "0"]
-                if not unanswered:
-                    # 全部回答済みならstep4へ
-                    st.session_state.step = 4
-                    st.rerun()
-                else:
-                    # 先頭を current_question にセット
-                    st.session_state["current_question"] = unanswered[0]
-                    # 表示用メッセージを追加
-                    st.session_state["messages"].append({
+                # 問診票を作成
+                if case_dict:
+                    st.session_state.messages.append({
                         "role": "assistant",
-                        "content": st.session_state["current_question"],
-                        "typed": False
+                        "content": f"あなたの発言をもとに問診票を作成しました。\n{json.dumps(case_dict, ensure_ascii=False, indent=2)}"
                     })
-                    st.rerun()
-            else:
-                # current_question が既にある状態 → ユーザー入力があればそれを回答としてセット
-                if user_input:
-                    # ユーザー入力を、現在の質問の回答として格納
-                    question_to_answer = st.session_state["current_question"]
-                    case_dict[question_to_answer] = user_input
-                    st.session_state["case_dict"] = case_dict
+                else:
+                    st.session_state.messages.append({
+                        "role": "assistant",
+                        "content": "症状の分析が完了しました。次の質問に進みましょう。"
+                    })
 
-                    # 次の質問があるかチェック
+                # 次へ
+                st.session_state.step = 2
+                st.rerun()
+            elif st.session_state.step == 2:
+                case_dict = st.session_state.get("case_dict")
+                if case_dict is None:
+                    st.error("問診データの取得に失敗しました。最初からやり直してください。")
+                    st.session_state.step = 0
+                    st.rerun()
+                    return
+                
+                # まだ表示中の質問がなければ、次の質問を取り出して表示する
+                if "current_question" not in st.session_state or st.session_state["current_question"] is None:
                     unanswered = [q for q, a in case_dict.items() if a == "0"]
                     if not unanswered:
                         # 全部回答済みならstep4へ
-                        done_text = "ご回答ありがとうございます。\n回答内容をまとめますのでお待ちください。"
-                        st.session_state["messages"].append({
-                            "role": "assistant",
-                            "content": done_text,
-                            "typed": False
-                        })
                         st.session_state.step = 4
-                        # current_question を None にしておく
-                        st.session_state["current_question"] = None
+                        st.rerun()
                     else:
-                        # まだ未回答がある → 次の質問を表示
+                        # 先頭を current_question にセット
                         st.session_state["current_question"] = unanswered[0]
+                        # 表示用メッセージを追加
                         st.session_state["messages"].append({
                             "role": "assistant",
                             "content": st.session_state["current_question"],
                             "typed": False
                         })
-                    st.rerun()
-
-        elif st.session_state.step == 4:
-            # step4: 最終判定
-            # ---------------------------------------------------
-            patients_additional_comment = user_input
-            summary_ver1 = st.session_state["patients_summary_ver1"]
-            summary_ver2 = make_final_summary(summary_ver1, patients_additional_comment)
-
-            # 最終まとめ
-            assistant_text = f"追加のお話も踏まえて以下のように最終的にまとめました。\n\n{summary_ver2}"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": assistant_text,
-                "typed": False
-            })
-
-            # 緊急性
-            red_flag_sign_list = extract_red_flag_signs(st.session_state["symptom_dictionary"])
-            urgency = evaluate_urgency(summary_ver2, red_flag_sign_list)
-            assistant_text2 = f"緊急度判定結果: {urgency}"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": assistant_text2,
-                "typed": False
-            })
-
-            # 推奨診療科
-            recommend_depertment = make_decision(summary_ver2)
-            assistant_text3 = f"受診推奨診療科: {recommend_depertment}"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": assistant_text3,
-                "typed": False
-            })
-            #受け入れ可能医療機関
-            iwami_decision = hospital_iwami_decision(summary_ver2, recommend_depertment)
-            assistant_text3 = f"岩見病院より(Google 口コミ XX点): {iwami_decision}"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": assistant_text3,
-                "typed": False
-            })
-            #受け入れ可能医療機関
-            watanabe_decision = hospital_watanabe_decision(summary_ver2, recommend_depertment)
-            assistant_text3 = f"渡辺病院より(Google 口コミ XX点): {watanabe_decision}"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": assistant_text3,
-                "typed": False
-            })
-            #受け入れ可能医療機関
-            kikuoka_decision = hospital_kikuoka_decision(summary_ver2, recommend_depertment)
-            assistant_text3 = f"菊岡病院より (Google 口コミ XX点): {kikuoka_decision}"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": assistant_text3,
-                "typed": False
-            })
-            #受け入れ可能医療機関
-            kato_decision = hospital_kato_decision(summary_ver2, recommend_depertment)
-            assistant_text3 = f"加藤病院より): {kato_decision}"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": assistant_text3,
-                "typed": False
-            })
-            #受け入れ可能医療機関
-            saku_decision = hospital_saku_decision(summary_ver2, recommend_depertment)
-            assistant_text3 = f"朔病院より): {saku_decision}"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": assistant_text3,
-                "typed": False
-            })
-            # 終了メッセージ
-            final_msg = "こちらで以上となります。\nお大事になさってください。"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": final_msg,
-                "typed": False
-            })
-
-            st.session_state.step = 999
-            st.rerun()
-
-        elif st.session_state.step == 999:
-            end_text = "チャットは終了しました。最初からやり直す場合は、ページをリロードしてください。"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": end_text,
-                "typed": False
-            })
-            st.session_state.step = 1000
-            st.rerun()
-
-        elif st.session_state.step == 1000:
-            pass
-
-    # Display chat messages
-    for message in st.session_state["messages"]:
-        with st.chat_message(message["role"]):
-            st.write(message["content"])
-
-    # Add END button at the bottom
-    if st.button("END"):
-        st.session_state["step"] = 0
-        st.session_state["messages"] = []
-        st.session_state["selected_model"] = None
-        st.rerun()
-
-    # Get user input
-    if prompt := st.chat_input("メッセージを入力してください"):
-        # ユーザーの発言を保存＆表示
-        st.session_state["messages"].append({
-            "role": "user",
-            "content": prompt,
-        })
-        with st.chat_message("user"):
-            st.write(prompt)
-
-        # --- 各 step に応じた分岐 ---
-        if st.session_state.step == 1:
-            # step1: ユーザーの症状自由記載
-            # ---------------------------------------------------
-            st.session_state["patients_first_comment"] = prompt
-
-            # 次のアシスタントメッセージを追加
-            assistant_text = (
-                "ありがとうございます。\n"
-                "次に、記載された症状について追加で質問をさせていただきます。\n"
-                "少しお待ちください。"
-            )
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": assistant_text,
-                "typed": False
-            })
-
-            # case_dict, symptom_dictionary を生成
-            result = make_question_and_dictionary(
-                patients_comment=prompt,
-                columns_dictionary=columns_dictionary_1
-            )
-            
-            if result is None:
-                st.error("症状の分析に失敗しました。APIキーを確認してください。")
-                return
-                
-            case_dict, symptom_dictionary = result
-            st.session_state["case_dict"] = case_dict
-            st.session_state["symptom_dictionary"] = symptom_dictionary
-
-            # 問診票を作成
-            if case_dict:
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": f"あなたの発言をもとに問診票を作成しました。\n{json.dumps(case_dict, ensure_ascii=False, indent=2)}"
-                })
-            else:
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": "症状の分析が完了しました。次の質問に進みましょう。"
-                })
-
-            # 次へ
-            st.session_state.step = 2
-            st.rerun()
-        elif st.session_state.step == 2:
-            case_dict = st.session_state.get("case_dict")
-            if case_dict is None:
-                st.error("問診データの取得に失敗しました。最初からやり直してください。")
-                st.session_state.step = 0
-                st.rerun()
-                return
-            
-            # まだ表示中の質問がなければ、次の質問を取り出して表示する
-            if "current_question" not in st.session_state or st.session_state["current_question"] is None:
-                unanswered = [q for q, a in case_dict.items() if a == "0"]
-                if not unanswered:
-                    # 全部回答済みならstep4へ
-                    st.session_state.step = 4
-                    st.rerun()
+                        st.rerun()
                 else:
-                    # 先頭を current_question にセット
-                    st.session_state["current_question"] = unanswered[0]
-                    # 表示用メッセージを追加
-                    st.session_state["messages"].append({
-                        "role": "assistant",
-                        "content": st.session_state["current_question"],
-                        "typed": False
-                    })
-                    st.rerun()
-            else:
-                # current_question が既にある状態 → ユーザー入力があればそれを回答としてセット
-                if prompt:
-                    # ユーザー入力を、現在の質問の回答として格納
-                    question_to_answer = st.session_state["current_question"]
-                    case_dict[question_to_answer] = prompt
-                    st.session_state["case_dict"] = case_dict
+                    # current_question が既にある状態 → ユーザー入力があればそれを回答としてセット
+                    if user_input:
+                        # ユーザー入力を、現在の質問の回答として格納
+                        question_to_answer = st.session_state["current_question"]
+                        case_dict[question_to_answer] = user_input
+                        st.session_state["case_dict"] = case_dict
 
-                    # 次の質問があるかチェック
+                        # 次の質問があるかチェック
+                        unanswered = [q for q, a in case_dict.items() if a == "0"]
+                        if not unanswered:
+                            # 全部回答済みならstep4へ
+                            done_text = "ご回答ありがとうございます。\n回答内容をまとめますのでお待ちください。"
+                            st.session_state["messages"].append({
+                                "role": "assistant",
+                                "content": done_text,
+                                "typed": False
+                            })
+                            st.session_state.step = 4
+                            # current_question を None にしておく
+                            st.session_state["current_question"] = None
+                        else:
+                            # まだ未回答がある → 次の質問を表示
+                            st.session_state["current_question"] = unanswered[0]
+                            st.session_state["messages"].append({
+                                "role": "assistant",
+                                "content": st.session_state["current_question"],
+                                "typed": False
+                            })
+                        st.rerun()
+
+            elif st.session_state.step == 4:
+                # step4: 最終判定
+                # ---------------------------------------------------
+                patients_additional_comment = user_input
+                summary_ver1 = st.session_state["patients_summary_ver1"]
+                summary_ver2 = make_final_summary(summary_ver1, patients_additional_comment)
+
+                # 最終まとめ
+                assistant_text = f"追加のお話も踏まえて以下のように最終的にまとめました。\n\n{summary_ver2}"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": assistant_text,
+                    "typed": False
+                })
+
+                # 緊急性
+                red_flag_sign_list = extract_red_flag_signs(st.session_state["symptom_dictionary"])
+                urgency = evaluate_urgency(summary_ver2, red_flag_sign_list)
+                assistant_text2 = f"緊急度判定結果: {urgency}"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": assistant_text2,
+                    "typed": False
+                })
+
+                # 推奨診療科
+                recommend_depertment = make_decision(summary_ver2)
+                assistant_text3 = f"受診推奨診療科: {recommend_depertment}"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": assistant_text3,
+                    "typed": False
+                })
+                #受け入れ可能医療機関
+                iwami_decision = hospital_iwami_decision(summary_ver2, recommend_depertment)
+                assistant_text3 = f"岩見病院より(Google 口コミ XX点): {iwami_decision}"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": assistant_text3,
+                    "typed": False
+                })
+                #受け入れ可能医療機関
+                watanabe_decision = hospital_watanabe_decision(summary_ver2, recommend_depertment)
+                assistant_text3 = f"渡辺病院より(Google 口コミ XX点): {watanabe_decision}"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": assistant_text3,
+                    "typed": False
+                })
+                #受け入れ可能医療機関
+                kikuoka_decision = hospital_kikuoka_decision(summary_ver2, recommend_depertment)
+                assistant_text3 = f"菊岡病院より (Google 口コミ XX点): {kikuoka_decision}"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": assistant_text3,
+                    "typed": False
+                })
+                #受け入れ可能医療機関
+                kato_decision = hospital_kato_decision(summary_ver2, recommend_depertment)
+                assistant_text3 = f"加藤病院より): {kato_decision}"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": assistant_text3,
+                    "typed": False
+                })
+                #受け入れ可能医療機関
+                saku_decision = hospital_saku_decision(summary_ver2, recommend_depertment)
+                assistant_text3 = f"朔病院より): {saku_decision}"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": assistant_text3,
+                    "typed": False
+                })
+                # 終了メッセージ
+                final_msg = "こちらで以上となります。\nお大事になさってください。"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": final_msg,
+                    "typed": False
+                })
+
+                st.session_state.step = 999
+                st.rerun()
+
+            elif st.session_state.step == 999:
+                end_text = "チャットは終了しました。最初からやり直す場合は、ページをリロードしてください。"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": end_text,
+                    "typed": False
+                })
+                st.session_state.step = 1000
+                st.rerun()
+
+            elif st.session_state.step == 1000:
+                pass
+
+        # Display chat messages
+        for message in st.session_state["messages"]:
+            with st.chat_message(message["role"]):
+                st.write(message["content"])
+
+        # Add END button at the bottom
+        if st.button("END"):
+            st.session_state["step"] = 0
+            st.session_state["messages"] = []
+            st.session_state["selected_model"] = None
+            st.rerun()
+
+        # Get user input
+        if prompt := st.chat_input("メッセージを入力してください"):
+            # ユーザーの発言を保存＆表示
+            st.session_state["messages"].append({
+                "role": "user",
+                "content": prompt,
+            })
+            with st.chat_message("user"):
+                st.write(prompt)
+
+            # --- 各 step に応じた分岐 ---
+            if st.session_state.step == 1:
+                # step1: ユーザーの症状自由記載
+                # ---------------------------------------------------
+                st.session_state["patients_first_comment"] = prompt
+
+                # 次のアシスタントメッセージを追加
+                assistant_text = (
+                    "ありがとうございます。\n"
+                    "次に、記載された症状について追加で質問をさせていただきます。\n"
+                    "少しお待ちください。"
+                )
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": assistant_text,
+                    "typed": False
+                })
+
+                # case_dict, symptom_dictionary を生成
+                result = make_question_and_dictionary(
+                    patients_comment=prompt,
+                    columns_dictionary=columns_dictionary_1
+                )
+                
+                if result is None:
+                    st.error("症状の分析に失敗しました。APIキーを確認してください。")
+                    return
+                    
+                case_dict, symptom_dictionary = result
+                st.session_state["case_dict"] = case_dict
+                st.session_state["symptom_dictionary"] = symptom_dictionary
+
+                # 問診票を作成
+                if case_dict:
+                    st.session_state.messages.append({
+                        "role": "assistant",
+                        "content": f"あなたの発言をもとに問診票を作成しました。\n{json.dumps(case_dict, ensure_ascii=False, indent=2)}"
+                    })
+                else:
+                    st.session_state.messages.append({
+                        "role": "assistant",
+                        "content": "症状の分析が完了しました。次の質問に進みましょう。"
+                    })
+
+                # 次へ
+                st.session_state.step = 2
+                st.rerun()
+            elif st.session_state.step == 2:
+                case_dict = st.session_state.get("case_dict")
+                if case_dict is None:
+                    st.error("問診データの取得に失敗しました。最初からやり直してください。")
+                    st.session_state.step = 0
+                    st.rerun()
+                    return
+                
+                # まだ表示中の質問がなければ、次の質問を取り出して表示する
+                if "current_question" not in st.session_state or st.session_state["current_question"] is None:
                     unanswered = [q for q, a in case_dict.items() if a == "0"]
                     if not unanswered:
                         # 全部回答済みならstep4へ
-                        done_text = "ご回答ありがとうございます。\n回答内容をまとめますのでお待ちください。"
-                        st.session_state["messages"].append({
-                            "role": "assistant",
-                            "content": done_text,
-                            "typed": False
-                        })
                         st.session_state.step = 4
-                        # current_question を None にしておく
-                        st.session_state["current_question"] = None
+                        st.rerun()
                     else:
-                        # まだ未回答がある → 次の質問を表示
+                        # 先頭を current_question にセット
                         st.session_state["current_question"] = unanswered[0]
+                        # 表示用メッセージを追加
                         st.session_state["messages"].append({
                             "role": "assistant",
                             "content": st.session_state["current_question"],
                             "typed": False
                         })
-                    st.rerun()
+                        st.rerun()
+                else:
+                    # current_question が既にある状態 → ユーザー入力があればそれを回答としてセット
+                    if prompt:
+                        # ユーザー入力を、現在の質問の回答として格納
+                        question_to_answer = st.session_state["current_question"]
+                        case_dict[question_to_answer] = prompt
+                        st.session_state["case_dict"] = case_dict
 
-        elif st.session_state.step == 4:
-            # step4: 最終判定
-            # ---------------------------------------------------
-            patients_additional_comment = prompt
-            summary_ver1 = st.session_state["patients_summary_ver1"]
-            summary_ver2 = make_final_summary(summary_ver1, patients_additional_comment)
+                        # 次の質問があるかチェック
+                        unanswered = [q for q, a in case_dict.items() if a == "0"]
+                        if not unanswered:
+                            # 全部回答済みならstep4へ
+                            done_text = "ご回答ありがとうございます。\n回答内容をまとめますのでお待ちください。"
+                            st.session_state["messages"].append({
+                                "role": "assistant",
+                                "content": done_text,
+                                "typed": False
+                            })
+                            st.session_state.step = 4
+                            # current_question を None にしておく
+                            st.session_state["current_question"] = None
+                        else:
+                            # まだ未回答がある → 次の質問を表示
+                            st.session_state["current_question"] = unanswered[0]
+                            st.session_state["messages"].append({
+                                "role": "assistant",
+                                "content": st.session_state["current_question"],
+                                "typed": False
+                            })
+                        st.rerun()
 
-            # 最終まとめ
-            assistant_text = f"追加のお話も踏まえて以下のように最終的にまとめました。\n\n{summary_ver2}"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": assistant_text,
-                "typed": False
-            })
+            elif st.session_state.step == 4:
+                # step4: 最終判定
+                # ---------------------------------------------------
+                patients_additional_comment = prompt
+                summary_ver1 = st.session_state["patients_summary_ver1"]
+                summary_ver2 = make_final_summary(summary_ver1, patients_additional_comment)
 
-            # 緊急性
-            red_flag_sign_list = extract_red_flag_signs(st.session_state["symptom_dictionary"])
-            urgency = evaluate_urgency(summary_ver2, red_flag_sign_list)
-            assistant_text2 = f"緊急度判定結果: {urgency}"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": assistant_text2,
-                "typed": False
-            })
+                # 最終まとめ
+                assistant_text = f"追加のお話も踏まえて以下のように最終的にまとめました。\n\n{summary_ver2}"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": assistant_text,
+                    "typed": False
+                })
 
-            # 推奨診療科
-            recommend_depertment = make_decision(summary_ver2)
-            assistant_text3 = f"受診推奨診療科: {recommend_depertment}"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": assistant_text3,
-                "typed": False
-            })
-            #受け入れ可能医療機関
-            iwami_decision = hospital_iwami_decision(summary_ver2, recommend_depertment)
-            assistant_text3 = f"岩見病院より(Google 口コミ XX点): {iwami_decision}"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": assistant_text3,
-                "typed": False
-            })
-            #受け入れ可能医療機関
-            watanabe_decision = hospital_watanabe_decision(summary_ver2, recommend_depertment)
-            assistant_text3 = f"渡辺病院より(Google 口コミ XX点): {watanabe_decision}"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": assistant_text3,
-                "typed": False
-            })
-            #受け入れ可能医療機関
-            kikuoka_decision = hospital_kikuoka_decision(summary_ver2, recommend_depertment)
-            assistant_text3 = f"菊岡病院より (Google 口コミ XX点): {kikuoka_decision}"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": assistant_text3,
-                "typed": False
-            })
-            #受け入れ可能医療機関
-            kato_decision = hospital_kato_decision(summary_ver2, recommend_depertment)
-            assistant_text3 = f"加藤病院より): {kato_decision}"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": assistant_text3,
-                "typed": False
-            })
-            #受け入れ可能医療機関
-            saku_decision = hospital_saku_decision(summary_ver2, recommend_depertment)
-            assistant_text3 = f"朔病院より): {saku_decision}"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": assistant_text3,
-                "typed": False
-            })
-            # 終了メッセージ
-            final_msg = "こちらで以上となります。\nお大事になさってください。"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": final_msg,
-                "typed": False
-            })
+                # 緊急性
+                red_flag_sign_list = extract_red_flag_signs(st.session_state["symptom_dictionary"])
+                urgency = evaluate_urgency(summary_ver2, red_flag_sign_list)
+                assistant_text2 = f"緊急度判定結果: {urgency}"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": assistant_text2,
+                    "typed": False
+                })
 
-            st.session_state.step = 999
-            st.rerun()
+                # 推奨診療科
+                recommend_depertment = make_decision(summary_ver2)
+                assistant_text3 = f"受診推奨診療科: {recommend_depertment}"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": assistant_text3,
+                    "typed": False
+                })
+                #受け入れ可能医療機関
+                iwami_decision = hospital_iwami_decision(summary_ver2, recommend_depertment)
+                assistant_text3 = f"岩見病院より(Google 口コミ XX点): {iwami_decision}"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": assistant_text3,
+                    "typed": False
+                })
+                #受け入れ可能医療機関
+                watanabe_decision = hospital_watanabe_decision(summary_ver2, recommend_depertment)
+                assistant_text3 = f"渡辺病院より(Google 口コミ XX点): {watanabe_decision}"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": assistant_text3,
+                    "typed": False
+                })
+                #受け入れ可能医療機関
+                kikuoka_decision = hospital_kikuoka_decision(summary_ver2, recommend_depertment)
+                assistant_text3 = f"菊岡病院より (Google 口コミ XX点): {kikuoka_decision}"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": assistant_text3,
+                    "typed": False
+                })
+                #受け入れ可能医療機関
+                kato_decision = hospital_kato_decision(summary_ver2, recommend_depertment)
+                assistant_text3 = f"加藤病院より): {kato_decision}"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": assistant_text3,
+                    "typed": False
+                })
+                #受け入れ可能医療機関
+                saku_decision = hospital_saku_decision(summary_ver2, recommend_depertment)
+                assistant_text3 = f"朔病院より): {saku_decision}"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": assistant_text3,
+                    "typed": False
+                })
+                # 終了メッセージ
+                final_msg = "こちらで以上となります。\nお大事になさってください。"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": final_msg,
+                    "typed": False
+                })
 
-        elif st.session_state.step == 999:
-            end_text = "チャットは終了しました。最初からやり直す場合は、ページをリロードしてください。"
-            st.session_state["messages"].append({
-                "role": "assistant",
-                "content": end_text,
-                "typed": False
-            })
-            st.session_state.step = 1000
-            st.rerun()
+                st.session_state.step = 999
+                st.rerun()
 
-        elif st.session_state.step == 1000:
-            pass
+            elif st.session_state.step == 999:
+                end_text = "チャットは終了しました。最初からやり直す場合は、ページをリロードしてください。"
+                st.session_state["messages"].append({
+                    "role": "assistant",
+                    "content": end_text,
+                    "typed": False
+                })
+                st.session_state.step = 1000
+                st.rerun()
+
+            elif st.session_state.step == 1000:
+                pass
 
 
 if __name__ == "__main__":
