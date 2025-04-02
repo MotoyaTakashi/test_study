@@ -1,5 +1,3 @@
-# test
-
 # 問診AI
 
 import streamlit as st
@@ -833,9 +831,28 @@ def main():
     st.title("問診AI")
     st.text("正確な問診をするAIです。")
 
+    # Add file upload button
+    uploaded_file = st.file_uploader("テキストファイルをアップロード (オプション)", type=['txt'])
+    
+    # Handle uploaded file
+    if uploaded_file is not None:
+        try:
+            # Read the content of the uploaded file
+            content = uploaded_file.getvalue().decode('utf-8')
+            st.session_state["step"] = 1
+            st.session_state["messages"] = []
+            st.session_state["messages"].append({
+                "role": "user",
+                "content": content,
+            })
+            with st.chat_message("user"):
+                st.write(content)
+        except Exception as e:
+            st.error(f"ファイルの読み込みに失敗しました: {str(e)}")
+
     # セッションで管理するステート
     if "step" not in st.session_state:
-        st.session_state["step"] = 0  # 0から開始するように変更
+        st.session_state["step"] = 0
     if "messages" not in st.session_state:
         st.session_state["messages"] = []
     if "selected_model" not in st.session_state:
