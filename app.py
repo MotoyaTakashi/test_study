@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import time
 import requests
-
+Hello
 # API keys
 openai.api_key = "openai"
 DEEPSEEK_API_KEY = "deepseek"  # Replace with your DeepSeek API key
@@ -830,8 +830,46 @@ def hospital_saku_decision(summary, depertment_assessement):
 
 
 def main():
+    st.markdown("# Rajkiran AI")
     st.title("問診AI")
     st.text("正確な問診をするAIです。")
+
+    # Add voice input section to main page
+    st.markdown("---")  # Add a separator line
+    st.subheader("音声入力")
+    
+    # Voice recording options
+    if "recording" not in st.session_state:
+        st.session_state.recording = False
+    
+    if st.button("🎤 音声録音を開始"):
+        st.session_state.recording = True
+        st.info("録音中... 停止するには「録音を停止」ボタンを押してください。")
+    
+    if st.session_state.recording:
+        if st.button("⏹ 録音を停止"):
+            st.session_state.recording = False
+            st.success("録音が完了しました。")
+            # Here you would typically process the recorded audio
+            st.info("音声認識機能は現在開発中です。")
+    
+    # Add audio file upload option
+    audio_file = st.file_uploader(
+        "音声ファイルをアップロード",
+        type=['wav', 'mp3', 'm4a'],
+        help="WAV、MP3、M4Aファイルをアップロードできます"
+    )
+    
+    if audio_file is not None:
+        st.write("音声ファイル情報:")
+        st.json({
+            "filename": audio_file.name,
+            "filetype": audio_file.type,
+            "filesize": f"{audio_file.size / 1024:.2f} KB"
+        })
+        st.info("音声認識機能は現在開発中です。")
+
+    st.markdown("---")  # Add a separator line
 
     # セッションで管理するステート
     if "step" not in st.session_state:
@@ -853,6 +891,17 @@ def main():
         st.markdown("[アンケート](https://forms.gle/MuRWMHM23wPwPAQH8)")
         st.markdown("[GitHub Issues](https://github.com/yusukewatanabe1208/test/issues)")
         st.markdown("---")  # Add a separator line
+        
+        # Add New Consultation button at the top
+        if st.button("New Consultation", type="primary"):
+            st.session_state.step = 0
+            st.session_state["messages"] = []
+            st.session_state["selected_model"] = None
+            st.session_state["api_keys"] = {
+                "openai": "",
+                "deepseek": ""
+            }
+            st.rerun()
         
         st.subheader("AIモデルの設定")
         
