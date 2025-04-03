@@ -830,6 +830,21 @@ def hospital_saku_decision(summary, depertment_assessement):
 
 
 def main():
+    # Add custom CSS at the beginning of main()
+    st.markdown(
+        """
+        <style>
+        [data-testid="stSidebar"][aria-expanded="true"] {
+            background-color: #FFEB3B;
+        }
+        [data-testid="stSidebar"][aria-expanded="false"] {
+            background-color: #FFEB3B;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    
     st.title("問診AI")
     st.text("正確な問診をするAIです。")
 
