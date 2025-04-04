@@ -826,6 +826,98 @@ def hospital_saku_decision(summary, depertment_assessement):
 '''
     return chat_with_model(prompt, model=st.session_state["selected_model"], temperature=0)
 
+def analyze_stomach_pain(patient_input):
+    """
+    Analyzes stomach pain characteristics and location from patient input
+    Returns a dictionary with pain details
+    """
+    prompt = f"""
+    You are a medical professional analyzing a patient's description of stomach pain.
+    Please analyze the following patient input and return a JSON dictionary with the following information:
+    - location: Where exactly is the pain located? (e.g., upper right, lower left, whole abdomen)
+    - type: What type of pain is it? (e.g., sharp, dull, cramping)
+    - severity: On a scale of 1-10, how severe is the pain?
+    - duration: How long has the pain been present?
+    - associated_symptoms: Any associated symptoms like nausea, vomiting, diarrhea?
+    
+    Patient input: {patient_input}
+    
+    Return only a JSON dictionary, no additional text.
+    Example format:
+    {{
+        "location": "upper right abdomen",
+        "type": "sharp",
+        "severity": 7,
+        "duration": "2 hours",
+        "associated_symptoms": ["nausea", "vomiting"]
+    }}
+    """
+    
+    try:
+        response = chat_with_model(prompt, model=st.session_state["selected_model"], temperature=0)
+        if response:
+            return json.loads(response)
+    except Exception as e:
+        st.error(f"Error analyzing stomach pain: {str(e)}")
+    return None
+
+def analyze_body_pain(patient_input):
+    """
+    Analyzes any type of body pain from patient input with an empathetic approach
+    Returns a dictionary with pain details including confidence levels and recovery tips
+    """
+    prompt = f"""
+    You are a caring and empathetic medical professional analyzing a patient's description of pain.
+    Please analyze the following patient input and return a JSON dictionary with the following information:
+    - pain_type: What type of pain is it? (e.g., sharp, dull, throbbing, burning)
+    - location: Where exactly is the pain located? (e.g., head, back, chest, abdomen, limbs)
+    - severity: On a scale of 1-10, how severe is the pain?
+    - duration: How long has the pain been present?
+    - possible_causes: List of possible causes with confidence levels (0-100%)
+    - associated_symptoms: Any associated symptoms
+    - confidence_level: Overall confidence in the analysis (0-100%)
+    - empathetic_note: A brief, caring note about the patient's situation
+    - recovery_tips: 2-3 short, practical tips for immediate relief or recovery
+    - follow_up_questions: 2-3 relevant questions to better understand the situation
+    
+    Patient input: {patient_input}
+    
+    Return only a JSON dictionary, no additional text.
+    Example format:
+    {{
+        "pain_type": "sharp",
+        "location": "lower back",
+        "severity": 7,
+        "duration": "3 days",
+        "possible_causes": [
+            {{"cause": "muscle strain", "confidence": 80}},
+            {{"cause": "herniated disc", "confidence": 40}},
+            {{"cause": "kidney stone", "confidence": 20}}
+        ],
+        "associated_symptoms": ["stiffness", "limited mobility"],
+        "confidence_level": 85,
+        "empathetic_note": "I understand this pain must be quite uncomfortable for you. Let's work together to find the best way to help you feel better.",
+        "recovery_tips": [
+            "軽いストレッチを試してみてください。痛みを悪化させない程度にゆっくりと体を動かしましょう。",
+            "患部を温めると痛みが和らぐ可能性があります。温かいタオルや湯たんぽを使用してみてください。",
+            "無理な姿勢を避け、適度な休息を取るように心がけてください。"
+        ],
+        "follow_up_questions": [
+            "痛みは特定の動作や姿勢で強くなりますか？",
+            "これまでに同じような痛みを経験したことはありますか？",
+            "痛み以外に気になる症状はありますか？"
+        ]
+    }}
+    """
+    
+    try:
+        response = chat_with_model(prompt, model=st.session_state["selected_model"], temperature=0)
+        if response:
+            return json.loads(response)
+    except Exception as e:
+        st.error(f"申し訳ありませんが、痛みの分析中に問題が発生しました。もう一度お試しください。")
+    return None
+
 ###メイン処理###
 
 
@@ -845,6 +937,10 @@ def main():
             "openai": "",
             "deepseek": ""
         }
+    if "stomach_pain_analysis" not in st.session_state:
+        st.session_state["stomach_pain_analysis"] = None
+    if "body_pain_analysis" not in st.session_state:
+        st.session_state["body_pain_analysis"] = None
 
     # サイドバーにモデル設定を配置
     with st.sidebar:
@@ -960,6 +1056,57 @@ def main():
             # step1: ユーザーの症状自由記載
             # ---------------------------------------------------
             st.session_state["patients_first_comment"] = user_input
+
+            # Check for any mention of pain
+            pain_keywords = ["痛い", "痛み", "pain", "ache", "sore"]
+            if any(keyword in user_input.lower() for keyword in pain_keywords):
+                with st.spinner("痛みの詳細を分析しています。少しお待ちください..."):
+                    pain_analysis = analyze_body_pain(user_input)
+                    if pain_analysis:
+                        st.session_state["body_pain_analysis"] = pain_analysis
+                        
+                        # Create a detailed and empathetic response about the pain analysis
+                        response_text = f"""
+                        おつらいですね。痛みの分析結果をお伝えさせていただきます：
+
+                        痛みの種類: {pain_analysis['pain_type']}
+                        痛みの場所: {pain_analysis['location']}
+                        痛みの強さ: {pain_analysis['severity']}/10
+                        痛みの期間: {pain_analysis['duration']}
+                        
+                        考えられる原因として、以下の可能性があります：
+                        """
+                        
+                        for cause in pain_analysis['possible_causes']:
+                            response_text += f"- {cause['cause']} (可能性: {cause['confidence']}%)\n"
+                        
+                        if pain_analysis['associated_symptoms']:
+                            response_text += f"\n関連する症状として、{', '.join(pain_analysis['associated_symptoms'])}がみられます。"
+                        
+                        response_text += f"\n\n分析の確信度: {pain_analysis['confidence_level']}%"
+                        
+                        if 'empathetic_note' in pain_analysis:
+                            response_text += f"\n\n{pain_analysis['empathetic_note']}"
+                        
+                        # Add recovery tips
+                        if 'recovery_tips' in pain_analysis and pain_analysis['recovery_tips']:
+                            response_text += "\n\n痛みを和らげるためのヒント："
+                            for tip in pain_analysis['recovery_tips']:
+                                response_text += f"\n・{tip}"
+                        
+                        # Add follow-up questions
+                        if 'follow_up_questions' in pain_analysis and pain_analysis['follow_up_questions']:
+                            response_text += "\n\nより詳しくお話を伺わせていただけますでしょうか？"
+                            for question in pain_analysis['follow_up_questions']:
+                                response_text += f"\n・{question}"
+                        
+                        st.session_state["messages"].append({
+                            "role": "assistant",
+                            "content": response_text,
+                            "typed": False
+                        })
+                    else:
+                        st.error("申し訳ありません。痛みの分析に失敗しました。もう一度お試しください。")
 
             # 即座に確認メッセージを表示
             assistant_text = (
