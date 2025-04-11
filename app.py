@@ -848,6 +848,61 @@ def main():
 
     # サイドバーにモデル設定を配置
     with st.sidebar:
+        # Add home button at the top of sidebar
+        if st.button("🏠 ホーム"):
+            st.session_state.step = 0
+            st.session_state["messages"] = []
+            st.session_state["selected_model"] = None
+            st.session_state["api_keys"] = {
+                "openai": "",
+                "deepseek": ""
+            }
+            st.rerun()
+            
+        # Add category button below home button
+        if st.button("📑 カテゴリー"):
+            # Create columns for category buttons
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("内科"):
+                    # Handle internal medicine category
+                    pass
+                if st.button("外科"):
+                    # Handle surgery category
+                    pass
+                if st.button("小児科"):
+                    # Handle pediatrics category
+                    pass
+            with col2:
+                if st.button("整形外科"):
+                    # Handle orthopedics category
+                    pass
+                if st.button("産婦人科"):
+                    # Handle obstetrics/gynecology category
+                    pass
+                if st.button("その他"):
+                    # Handle other categories
+                    pass
+
+        # Add About Us button
+        if st.button("ℹ️ 私たちについて"):
+            st.markdown("""
+                ### 私たちについて
+                
+                問診AIは、最新のAI技術を活用して、
+                より効率的で正確な初期医療相談を提供することを目指しています。
+                
+                **主な特徴:**
+                - 24時間365日利用可能
+                - 複数のAIモデルに対応
+                - プライバシーに配慮した設計
+                - 医療専門家による監修
+                
+                **注意事項:**
+                このシステムは医療専門家への相談に代わるものではありません。
+                緊急の場合は直接医療機関を受診してください。
+            """)
+                    
         st.markdown("### フィードバック")
         st.markdown("ご意見・ご要望があれば以下までお願いいたします。")
         st.markdown("[アンケート](https://forms.gle/MuRWMHM23wPwPAQH8)")
@@ -1223,3 +1278,24 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# Add custom CSS to change background color
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-color: #F0F7F4;
+        background-image: 
+            repeating-linear-gradient(
+                45deg,
+                #E5E5E5 0,
+                #E5E5E5 1px,
+                #F0F7F4 0,
+                #F0F7F4 50%
+            );
+        background-size: 10px 10px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
