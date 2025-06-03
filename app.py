@@ -9,6 +9,11 @@ import numpy as np
 import pandas as pd
 import time
 import requests
+from PIL import Image
+
+# Add hospital logo and title in sidebar
+st.sidebar.markdown("# 🏥 問診AI")
+st.sidebar.markdown("---")  # Add a separator line
 
 # API keys
 openai.api_key = "openai"
@@ -830,8 +835,8 @@ def hospital_saku_decision(summary, depertment_assessement):
 
 
 def main():
-    st.title("問診AI")
     st.text("正確な問診をするAIです。")
+    st.title("問診AI")
 
     # セッションで管理するステート
     if "step" not in st.session_state:
